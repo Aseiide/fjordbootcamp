@@ -1,13 +1,13 @@
 require 'minitest/autorun'
+require 'date'
 
 class Taiyaki
-  attr_reader :anko, :size 
-  # 元の値段: 100円
-  # 白あん: +30円
-  # 大きめ: +50円
+  attr_reader :anko, :size, :produced_on
+
   def initialize(anko, size)
     @anko = anko
     @size = size
+    @produced_on = Date.today
   end
 
   def price
@@ -19,6 +19,14 @@ class Taiyaki
       amount += 50
     end
     amount
+  end
+
+  def expire_on
+    produced_on + 3
+  end
+
+  def expired?(today = Date.today)
+    expire_on < today
   end
 
   def to_s # to_sメソッドをオーバーライド
@@ -39,6 +47,20 @@ class Taiyakitest < Minitest::Test
     assert_equal '大', taiyaki_2.size
     assert_equal 180, taiyaki_2.price
     assert_equal 'あんこ: 白あん, 大きさ: 大, 180円', taiyaki_2.to_s
+  end
+
+  def test_expired
+    taiyaki = Taiyaki.new('あずき', 'ふつう')
+    # システム日付
+    assert_equal Date.today, taiyaki.produced_on
+    # システム日付 + 3日
+    assert_equal Date.today + 3,  taiyaki.expire_on
+    # 当日なら食べられる
+    refute taiyaki.expired?
+    # 3日まで食べられる
+    refute taiyaki.expired?(Date.today + 3)
+    # 4日以降は食べられない
+    assert taiyaki.expired?(Date.today + 4)
   end
 end
 
